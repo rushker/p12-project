@@ -28,6 +28,7 @@
       }
     ],
     "env": {
-      "REACT_APP_API_BASE_URL": "https://p12-project.onrender.com"
+      "REACT_APP_API_BASE_URL": "https://p12-project.onrender.com",
+      "NODE_OPTIONS": "--openssl-legacy-provider"
     }
   }
