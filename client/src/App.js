@@ -1,25 +1,26 @@
 import React from 'react';
-import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
-import PrivateRoute from './components/auth/PrivateRoute';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
-import AdminPage from './pages/AdminPage';
-import UserPage from './pages/UserPage';
 import HomePage from './pages/HomePage';
 import QRViewPage from './pages/QRViewPage';
+import PrivateRoute from './components/auth/PrivateRoute';
 
 function App() {
   return (
-    <Router>
-      <Switch>
-        <Route exact path="/" component={HomePage} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/qr/:id" component={QRViewPage} />
-        <PrivateRoute path="/admin" component={AdminPage} roles={['admin']} />
-        <PrivateRoute path="/user" component={UserPage} />
-      </Switch>
-    </Router>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/qr/:id" element={<QRViewPage />} />
+        {/* Protected routes */}
+        <Route element={<PrivateRoute />}>
+          <Route path="/admin" element={<AdminPage />} />
+          <Route path="/user" element={<UserPage />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
   );
 }
 

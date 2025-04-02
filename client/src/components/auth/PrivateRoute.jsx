@@ -1,23 +1,18 @@
 import React from 'react';
-import { Route, Redirect } from 'react-router-dom';
-import { getToken } from '../../services/auth';
+import { Navigate } from 'react-router-dom';
 
-const PrivateRoute = ({ component: Component, roles, ...rest }) => {
-  const token = getToken();
-  const userRole = token ? JSON.parse(atob(token.split('.')[1])).role : null;
-
-  return (
-    <Route
-      {...rest}
-      render={(props) =>
-        token && (!roles || roles.includes(userRole)) ? (
-          <Component {...props} />
-        ) : (
-          <Redirect to="/login" />
-        )
-      }
-    />
-  );
+const PrivateRoute = ({ children, roles }) => {
+  const user = JSON.parse(localStorage.getItem('user'));
+  
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/" />;
+  }
+  
+  return children;
 };
 
 export default PrivateRoute;

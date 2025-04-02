@@ -1,10 +1,13 @@
 import axios from 'axios';
 
-const API_URL = `${process.env.REACT_APP_BACKEND_URL}/api/auth`;
+const API_URL = process.env.REACT_APP_API_BASE_URL;
 
-export const register = (userData) => axios.post(`${API_URL}/register`, userData);
-export const login = (userData) => axios.post(`${API_URL}/login`, userData);
+export const login = async (credentials) => {
+  const response = await axios.post(`${API_URL}/auth/login`, credentials);
+  return response.data;
+};
 
-export const storeToken = (token) => localStorage.setItem('token', token);
-export const getToken = () => localStorage.getItem('token');
-export const removeToken = () => localStorage.removeItem('token');
+export const register = async (userData) => {
+  const response = await axios.post(`${API_URL}/auth/register`, userData);
+  return response.data;
+};
