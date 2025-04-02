@@ -14,6 +14,14 @@ connectDB();
 
 // Middleware
 app.use(helmet());
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'", "'unsafe-inline'"],
+    styleSrc: ["'self'", "'unsafe-inline'"],
+    imgSrc: ["'self'", "data:", "https://p12-project.onrender.com"]
+  }
+}));
 app.use(cors({
   origin: isProduction 
     ? 'https://your-frontend-url.vercel.app' 
