@@ -15,7 +15,14 @@ app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB();
-
+// Add this before other routes
+app.get('/health', (req, res) => {
+    res.status(200).json({
+      status: 'healthy',
+      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+      timestamp: new Date()
+    });
+  });
 // Middleware
 app.use(express.json());
 //
@@ -23,6 +30,14 @@ app.use((req, res, next) => {
     console.log(`Incoming ${req.method} request to ${req.path}`);
     next();
   });
+  // Add this before other routes
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    timestamp: new Date()
+  });
+});
 // Routes - using absolute path
 app.use('/api', require(path.join(__dirname, 'routes', 'index.js')));
 
