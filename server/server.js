@@ -10,13 +10,19 @@ console.log('Current directory:', __dirname);
 console.log('Routes contents:', fs.readdirSync(path.join(__dirname, 'routes')));
 
 const app = express();
+app.use(express.json({ limit: '5mb' }));
+app.use(express.urlencoded({ extended: true }));
 
 // Connect to MongoDB
 connectDB();
 
 // Middleware
 app.use(express.json());
-
+//
+app.use((req, res, next) => {
+    console.log(`Incoming ${req.method} request to ${req.path}`);
+    next();
+  });
 // Routes - using absolute path
 app.use('/api', require(path.join(__dirname, 'routes', 'index.js')));
 

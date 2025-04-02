@@ -36,3 +36,11 @@ exports.verifyQR = async (req, res, next) => {
     next(err);
   }
 };
+exports.getQRHistory = async (req, res, next) => {
+  try {
+    // Your implementation here
+    res.json({ history: [] });
+  } catch (err) {
+    next(err);
+  }
+};

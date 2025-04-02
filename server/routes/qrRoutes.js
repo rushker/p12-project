@@ -4,19 +4,20 @@ const qrController = require('../controllers/qrController');
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// @route    POST /api/qr/generate
-// @desc     Generate QR code
-// @access   Private
-router.post('/generate', auth, upload.single('image'), qrController.generateQR);
+// Make sure all controller methods exist
+router.post('/generate', 
+  auth, 
+  upload.single('image'), 
+  qrController.generateQR || ((req, res) => res.status(501).send('Not implemented'))
+);
 
-// @route    POST /api/qr/verify
-// @desc     Verify QR code
-// @access   Public
-router.post('/verify', qrController.verifyQR);
+router.post('/verify', 
+  qrController.verifyQR || ((req, res) => res.status(501).send('Not implemented'))
+);
 
-// @route    GET /api/qr/history
-// @desc     Get user's QR history
-// @access   Private
-router.get('/history', auth, qrController.getQRHistory);
+router.get('/history', 
+  auth, 
+  qrController.getQRHistory || ((req, res) => res.status(501).send('Not implemented'))
+);
 
 module.exports = router;
