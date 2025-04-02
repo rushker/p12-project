@@ -2,7 +2,7 @@ import axios from 'axios';
 
 const api = axios.create({
   baseURL: process.env.NODE_ENV === 'production'
-    ? 'https://your-render-backend-url.onrender.com'
+    ? 'https://p12-project.onrender.com'
     : 'http://localhost:10000',
   withCredentials: true
 });

@@ -1,12 +1,12 @@
-import React from 'react';
+import { Link } from 'react-router-dom';
 
-const UserPage = () => {
+export default function UserPage() {
   return (
-    <div className="user-page">
+    <div>
       <h1>User Dashboard</h1>
-      {/* User content here */}
+      <Link to="/generate-qr" className="btn">
+        Generate QR Code
+      </Link>
     </div>
   );
-};
-
-export default UserPage;
+}

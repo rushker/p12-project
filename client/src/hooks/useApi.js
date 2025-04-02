@@ -1,16 +1,23 @@
-import { useEffect, useState } from 'react';
-import api from '../api/client';
+import { useState } from 'react';
 
-export default function useApi(endpoint) {
+export const useApi = (apiFunc) => {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    api.get(endpoint)
-      .then(res => setData(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, [endpoint]);
+  const callApi = async (...args) => {
+    try {
+      setLoading(true);
+      const response = await apiFunc(...args);
+      setData(response);
+      return { success: true, ...response };
+    } catch (err) {
+      setError(err.message || 'Something went wrong');
+      return { success: false };
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  return { data, loading };
-}
+  return { callApi, data, loading, error };
+};
