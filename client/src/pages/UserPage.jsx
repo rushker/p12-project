@@ -4,7 +4,7 @@ const UserPage = () => {
   return (
     <div className="user-page">
       <h1>User Dashboard</h1>
-      {/* Add your user content here */}
+      {/* User content here */}
     </div>
   );
 };

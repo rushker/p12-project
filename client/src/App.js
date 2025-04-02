@@ -5,7 +5,8 @@ import Register from './components/auth/Register';
 import HomePage from './pages/HomePage';
 import QRViewPage from './pages/QRViewPage';
 import PrivateRoute from './components/auth/PrivateRoute';
-
+import AdminPage from './pages/AdminPage';
+import UserPage from './pages/UserPage';
 function App() {
   return (
     <BrowserRouter>

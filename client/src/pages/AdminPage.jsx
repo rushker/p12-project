@@ -1,10 +1,12 @@
 import React from 'react';
 
-export default function AdminPage() {
+const AdminPage = () => {
   return (
     <div className="admin-page">
       <h1>Admin Dashboard</h1>
-      {/* Your admin content here */}
+      {/* Admin content here */}
     </div>
   );
-}
+};
+
+export default AdminPage;
