@@ -2,42 +2,68 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const path = require('path');
-const fs = require('fs');
 const connectDB = require('./config/db');
 
-// Debug paths - can remove after fixing
-console.log('Current directory:', __dirname);
-console.log('Routes contents:', fs.readdirSync(path.join(__dirname, 'routes')));
-
+// Initialize Express app
 const app = express();
-app.use(express.json({ limit: '5mb' }));
+
+// Database Connection
+connectDB();
+
+// Middleware
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Connect to MongoDB
-connectDB();
-// Add this before other routes
-app.get('/health', (req, res) => {
-    res.status(200).json({
-      status: 'healthy',
-      database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
-      timestamp: new Date()
-    });
-  });
-// Middleware
-app.use(express.json());
-//
-app.use((req, res, next) => {
-    console.log(`Incoming ${req.method} request to ${req.path}`);
-    next();
-  });
-// Routes - using absolute path
-app.use('/api', require(path.join(__dirname, 'routes', 'index.js')));
+// Static Files (for uploaded images)
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// Error handling
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ message: 'Server error' });
+// Request Logger
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
 });
 
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+  const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+  res.status(200).json({
+    status: 'healthy',
+    database: dbStatus,
+    uptime: process.uptime(),
+    timestamp: new Date()
+  });
+});
+
+// API Routes
+app.use('/api', require('./routes'));
+
+// Error Handling Middleware
+app.use((err, req, res, next) => {
+  console.error(`[ERROR] ${err.stack}`);
+  res.status(err.status || 500).json({
+    error: {
+      message: err.message || 'Internal Server Error',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  });
+});
+
+// Server Startup
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+const server = app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+});
+
+// Graceful Shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down gracefully...');
+  server.close(() => {
+    mongoose.connection.close(false, () => {
+      console.log('Server and database connections closed');
+      process.exit(0);
+    });
+  });
+});
+
+module.exports = server; // For testing
