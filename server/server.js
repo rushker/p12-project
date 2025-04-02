@@ -4,59 +4,71 @@ const mongoose = require('mongoose');
 const path = require('path');
 const helmet = require('helmet');
 const cors = require('cors');
+const fs = require('fs');
 const connectDB = require('./config/db');
 
-const isProduction = process.env.NODE_ENV === 'production';
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
 
-// Database
+// Database Connection
 connectDB();
 
-// Middleware
+// Security Middleware
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy({
-  directives: {
-    defaultSrc: ["'self'"],
-    scriptSrc: ["'self'", "'unsafe-inline'"],
-    styleSrc: ["'self'", "'unsafe-inline'"],
-    imgSrc: ["'self'", "data:", "https://p12-project.onrender.com"]
-  }
-}));
 app.use(cors({
   origin: isProduction 
-    ? 'https://your-frontend-url.vercel.app' 
+    ? process.env.CLIENT_URL 
     : 'http://localhost:3000',
   credentials: true
 }));
-app.use(express.json({ limit: '10mb' }));
 
-// Static files
+// Body Parsers
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+
+// Static Files
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Logging Middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+  next();
+});
 
 // API Routes
 app.use('/api', require('./routes'));
 
-// Frontend Serving (for production)
+// Serve Frontend in Production
 if (isProduction) {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build/index.html'))});
-  };
-  
-
-
+  const clientPath = path.join(__dirname, '../../client/build');
+  if (fs.existsSync(clientPath)) {
+    app.use(express.static(clientPath));
+    app.get('*', (req, res) => {
+      res.sendFile(path.join(clientPath, 'index.html'));
+    });
+  } else {
+    console.error('Client build not found!');
+  }
+}
 
 // Error Handling
 app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message,
-      ...(!isProduction && { stack: err.stack })
-    }
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    ...(!isProduction && { details: err.message })
   });
 });
 
 const PORT = process.env.PORT || 10000;
 app.listen(PORT, () => {
-  console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`);
+  console.log(`Server running in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`Listening on port ${PORT}`);
+});
+
+// Graceful Shutdown
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Shutting down...');
+  mongoose.connection.close();
+  process.exit(0);
 });
