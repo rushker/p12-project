@@ -90,6 +90,7 @@ const QRGenerator = () => {
           )}
         </div>
 
+        {/* Generate Button */}
         <button
           onClick={handleGenerateQR}
           disabled={loading || !image}
@@ -105,6 +106,7 @@ const QRGenerator = () => {
           )}
         </button>
 
+        {/* QR Code Appears Below the Button */}
         {qrData && (
           <div className="qr-result-section">
             <h3>Your QR Code</h3>
@@ -112,25 +114,3 @@ const QRGenerator = () => {
               <QRCode value={qrData.qrId} size={256} />
             </div>
             <p className="qr-instructions">Scan this QR to view the image</p>
-            <div className="qr-meta">
-              <p>
-                QR ID: <span className="qr-id">{qrData.qrId}</span>
-              </p>
-              <button
-                className="copy-button"
-                onClick={() => {
-                  navigator.clipboard.writeText(qrData.qrId);
-                  toast.success('QR ID copied to clipboard!');
-                }}
-              >
-                Copy ID
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default QRGenerator;
