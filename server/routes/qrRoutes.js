@@ -2,19 +2,14 @@ const express = require('express');
 const router = express.Router();
 const qrController = require('../controllers/qrController');
 const auth = require('../middleware/auth');
+const multer = require('multer');
 
-// Verify the controller functions exist
-if (typeof qrController.generateQR !== 'function') {
-  throw new Error('qrController.generateQR is not a function');
-}
+const upload = multer({ dest: 'uploads/' });
 
-// Proper route definitions
-router.post('/generate', auth, qrController.generateQR);
-router.get('/:id', auth, (req, res) => {
-  if (typeof qrController.getQR === 'function') {
-    return qrController.getQR(req, res);
-  }
-  res.status(501).json({ error: 'Endpoint not implemented' });
-});
+// Generate QR (Only authenticated users)
+router.post('/generate', auth, upload.single('image'), qrController.generateQR);
+
+// Fetch QR Image (No auth required for public access)
+router.get('/:id', qrController.getQR);
 
 module.exports = router;

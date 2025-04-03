@@ -1,29 +1,29 @@
-import React, { useState } from 'react';
-import QRCode from 'react-qr-code'; // ✅ New QR code library
-import axios from 'axios';
-import { toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import '../../styles/QRGenerator.css'; // ✅ Update the path if needed
+import React, { useState } from "react";
+import QRCode from "qrcode";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
+import "./QRGenerator.css";
 
 const QRGenerator = () => {
   const [image, setImage] = useState(null);
-  const [password, setPassword] = useState('');
-  const [qrData, setQrData] = useState(null);
+  const [qrImageUrl, setQrImageUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState("");
+
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    if (!file.type.match('image.*')) {
-      toast.error('Please select an image file (JPEG, PNG, etc.)');
+    if (!file.type.match("image.*")) {
+      toast.error("Please select an image file (JPEG, PNG, etc.)");
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image size should be less than 5MB');
+      toast.error("Image size should be less than 5MB");
       return;
     }
 
@@ -33,11 +33,7 @@ const QRGenerator = () => {
 
   const handleGenerateQR = async () => {
     if (!image) {
-      toast.error('Please select an image');
-      return;
-    }
-    if (!password || password.length < 4) {
-      toast.error('Password must be at least 4 characters');
+      toast.error("Please select an image");
       return;
     }
 
@@ -45,25 +41,35 @@ const QRGenerator = () => {
 
     try {
       const formData = new FormData();
-      formData.append('image', image);
-      formData.append('password', password);
+      formData.append("image", image);
 
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/qr/generate`,
         formData,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "multipart/form-data",
           },
         }
       );
 
-      setQrData(response.data);
-      toast.success('QR Code generated successfully!');
+      const qrId = response.data.qrId;
+
+      // Generate QR Code with only qrId
+      QRCode.toDataURL(qrId, { width: 256, margin: 2 }, (err, url) => {
+        if (err) {
+          console.error("QR Code generation error:", err);
+          toast.error("Error generating QR code");
+          return;
+        }
+        setQrImageUrl(url);
+      });
+
+      toast.success("QR Code generated successfully!");
     } catch (err) {
-      console.error('QR generation error:', err);
-      toast.error(err.response?.data?.message || 'Error generating QR code');
+      console.error("QR generation error:", err);
+      toast.error(err.response?.data?.message || "Error generating QR code");
     } finally {
       setLoading(false);
     }
@@ -96,20 +102,10 @@ const QRGenerator = () => {
           )}
         </div>
 
-        <div className="password-section">
-          <input
-            type="password"
-            placeholder="Set password (min 4 characters)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            className="password-input"
-          />
-        </div>
-
         <button
           onClick={handleGenerateQR}
-          disabled={loading || !image || !password}
-          className={`generate-button ${loading ? 'loading' : ''}`}
+          disabled={loading || !image}
+          className={`generate-button ${loading ? "loading" : ""}`}
         >
           {loading ? (
             <>
@@ -117,37 +113,17 @@ const QRGenerator = () => {
               Generating...
             </>
           ) : (
-            'Generate QR Code'
+            "Generate QR Code"
           )}
         </button>
 
-        {qrData && (
+        {qrImageUrl && (
           <div className="qr-result-section">
             <h3>Your Secure QR Code</h3>
-            <div className="qr-code-container">
-              {/* ✅ New QR Code using react-qr-code */}
-              <QRCode
-                value={JSON.stringify({ qrId: qrData.qrId, password })}
-                size={256}
-              />
-            </div>
+            <img src={qrImageUrl} alt="QR Code" className="qr-code-image" />
             <p className="qr-instructions">
               Scan this QR to view the protected image
             </p>
-            <div className="qr-meta">
-              <p>
-                QR ID: <span className="qr-id">{qrData.qrId}</span>
-              </p>
-              <button
-                className="copy-button"
-                onClick={() => {
-                  navigator.clipboard.writeText(qrData.qrId);
-                  toast.success('QR ID copied to clipboard!');
-                }}
-              >
-                Copy ID
-              </button>
-            </div>
           </div>
         )}
       </div>
