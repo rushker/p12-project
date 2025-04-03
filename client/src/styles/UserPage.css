@@ -1,0 +1,19 @@
+/* UserPage.css */
+.user-page {
+    text-align: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+  }
+  
+  .qr-section {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+  }
+  
+  .qr-section h2 {
+    margin-bottom: 10px;
+  }
+  

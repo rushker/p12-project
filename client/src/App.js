@@ -29,3 +29,5 @@ function App() {
     </BrowserRouter>
   );
 }
+
+export default App;  // <-- Make sure to export it as default

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { QRCode } from 'qrcode.react';
+import QRCode from 'react-qr-code'; // ✅ New QR code library
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import './QRGenerator.css'; // New CSS file for this component
+import '../../styles/QRGenerator.css'; // ✅ Update the path if needed
 
 const QRGenerator = () => {
   const [image, setImage] = useState(null);
@@ -42,7 +42,7 @@ const QRGenerator = () => {
     }
 
     setLoading(true);
-    
+
     try {
       const formData = new FormData();
       formData.append('image', image);
@@ -52,13 +52,13 @@ const QRGenerator = () => {
         `${process.env.REACT_APP_BACKEND_URL}/api/qr/generate`,
         formData,
         {
-          headers: { 
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-            'Content-Type': 'multipart/form-data'
-          }
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+            'Content-Type': 'multipart/form-data',
+          },
         }
       );
-      
+
       setQrData(response.data);
       toast.success('QR Code generated successfully!');
     } catch (err) {
@@ -74,28 +74,24 @@ const QRGenerator = () => {
       <button className="back-button" onClick={() => navigate(-1)}>
         ← Back to Dashboard
       </button>
-      
+
       <div className="qr-generator-card">
         <h2 className="qr-generator-title">Generate Secure QR Code</h2>
-        
+
         <div className="upload-section">
           <label className="file-upload-label">
             Choose Image
-            <input 
-              type="file" 
+            <input
+              type="file"
               accept="image/*"
               onChange={handleImageChange}
               className="file-upload-input"
             />
           </label>
-          
+
           {previewUrl && (
             <div className="image-preview-container">
-              <img 
-                src={previewUrl} 
-                alt="Preview" 
-                className="image-preview"
-              />
+              <img src={previewUrl} alt="Preview" className="image-preview" />
             </div>
           )}
         </div>
@@ -110,8 +106,8 @@ const QRGenerator = () => {
           />
         </div>
 
-        <button 
-          onClick={handleGenerateQR} 
+        <button
+          onClick={handleGenerateQR}
           disabled={loading || !image || !password}
           className={`generate-button ${loading ? 'loading' : ''}`}
         >
@@ -124,22 +120,25 @@ const QRGenerator = () => {
             'Generate QR Code'
           )}
         </button>
-        
+
         {qrData && (
           <div className="qr-result-section">
             <h3>Your Secure QR Code</h3>
             <div className="qr-code-container">
-              <QRCode 
-                value={JSON.stringify({ qrId: qrData.qrId, password })} 
+              {/* ✅ New QR Code using react-qr-code */}
+              <QRCode
+                value={JSON.stringify({ qrId: qrData.qrId, password })}
                 size={256}
-                level="H"
-                includeMargin={true}
               />
             </div>
-            <p className="qr-instructions">Scan this QR to view the protected image</p>
+            <p className="qr-instructions">
+              Scan this QR to view the protected image
+            </p>
             <div className="qr-meta">
-              <p>QR ID: <span className="qr-id">{qrData.qrId}</span></p>
-              <button 
+              <p>
+                QR ID: <span className="qr-id">{qrData.qrId}</span>
+              </p>
+              <button
                 className="copy-button"
                 onClick={() => {
                   navigator.clipboard.writeText(qrData.qrId);
