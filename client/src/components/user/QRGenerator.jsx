@@ -10,6 +10,8 @@ const QRGenerator = () => {
   const [qrData, setQrData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -31,8 +33,8 @@ const QRGenerator = () => {
   };
 
   const handleGenerateQR = async () => {
-    if (!image) {
-      toast.error('Please select an image');
+    if (!image || !name || !description) {
+      toast.error('Please select an image, name, and description');
       return;
     }
 
@@ -41,6 +43,8 @@ const QRGenerator = () => {
     try {
       const formData = new FormData();
       formData.append('image', image);
+      formData.append('name', name);
+      formData.append('description', description);
 
       const response = await axios.post(
         `${process.env.REACT_APP_BACKEND_URL}/api/qr/generate`,
@@ -55,6 +59,10 @@ const QRGenerator = () => {
 
       setQrData(response.data);
       toast.success('QR Code generated successfully!');
+      setImage(null); // Clear the image after generation
+      setPreviewUrl('');
+      setName(''); // Clear name
+      setDescription(''); // Clear description
     } catch (err) {
       console.error('QR generation error:', err);
       toast.error(err.response?.data?.message || 'Error generating QR code');
@@ -90,10 +98,27 @@ const QRGenerator = () => {
           )}
         </div>
 
+        {/* Name and Description Inputs */}
+        <div className="input-fields">
+          <input
+            type="text"
+            placeholder="Enter Name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="input-field"
+          />
+          <textarea
+            placeholder="Enter Description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="input-field"
+          />
+        </div>
+
         {/* Generate Button */}
         <button
           onClick={handleGenerateQR}
-          disabled={loading || !image}
+          disabled={loading || !image || !name || !description}
           className={`generate-button ${loading ? 'loading' : ''}`}
         >
           {loading ? (
