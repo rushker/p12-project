@@ -1,22 +1,25 @@
 /* UserPage.css */
-.user-page {
-    text-align: center;
-    padding: 20px;
-    font-family: Arial, sans-serif;
-  }
-  
-  .qr-section {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-  }
-  .qr-section img {
-    max-width: 80%;
-    height: auto;
-  }
-  .qr-section h2 {
-    margin-bottom: 10px;
-  }
-  
+
+/* Styling for the QR code display section */
+.qr-display {
+  margin-top: 20px;
+  text-align: center;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+.qr-display h3 {
+  margin-bottom: 15px;
+  font-size: 20px;
+  color: #333;
+}
+
+.qr-container {
+  display: inline-block;
+  padding: 20px;
+  background-color: #f7f7f7;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}

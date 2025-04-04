@@ -12,6 +12,7 @@ const QRGenerator = () => {
   const [previewUrl, setPreviewUrl] = useState('');
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [notification, setNotification] = useState({ type: '', message: '', qrCode: null }); // Notification state
   const navigate = useNavigate();
 
   const handleImageChange = (e) => {
@@ -58,6 +59,11 @@ const QRGenerator = () => {
       );
 
       setQrData(response.data);
+      setNotification({
+        type: 'success',
+        message: 'QR Code generated successfully!',
+        qrCode: response.data.qrId,
+      });
       toast.success('QR Code generated successfully!');
       setImage(null); // Clear the image after generation
       setPreviewUrl('');
@@ -65,6 +71,11 @@ const QRGenerator = () => {
       setDescription(''); // Clear description
     } catch (err) {
       console.error('QR generation error:', err);
+      setNotification({
+        type: 'error',
+        message: err.response?.data?.message || 'Error generating QR code',
+        qrCode: null,
+      });
       toast.error(err.response?.data?.message || 'Error generating QR code');
     } finally {
       setLoading(false);
@@ -130,6 +141,22 @@ const QRGenerator = () => {
             'Generate QR Code'
           )}
         </button>
+
+        {/* Notification Box */}
+        {notification.message && (
+          <div
+            className={`notification-box ${notification.type === 'success' ? 'success' : 'error'}`}
+          >
+            <div className="notification-message">
+              <p>{notification.message}</p>
+            </div>
+            {notification.type === 'success' && notification.qrCode && (
+              <div className="qr-code-notification">
+                <QRCode value={notification.qrCode} size={100} />
+              </div>
+            )}
+          </div>
+        )}
 
         {/* QR Code Appears Below the Button */}
         {qrData && (
