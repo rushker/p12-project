@@ -31,7 +31,10 @@
     padding: 10px 20px;
     cursor: pointer;
   }
-  
+  .image-container img {
+    max-width: 80%; /* Limit to 80% of the container width */
+    height: auto; /* Maintain aspect ratio */
+  }
   .qr-view-page button:hover {
     background-color: #45a049;
   }

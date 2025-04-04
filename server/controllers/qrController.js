@@ -1,25 +1,25 @@
 const QRCode = require('../models/QRCode');
 exports.generateQR = async (req, res, next) => {
   try {
-    if (!req.file || !req.body.name || !req.body.description) {
-      return res.status(400).json({ success: false, message: 'Image, name, and description are required' });
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'Image file is required' });
     }
 
     // Save the QR code entry to the database
     const newQR = new QRCode({
-      imageUrl: `/uploads/${req.file.filename}`,
-      name: req.body.name,
-      description: req.body.description,
+      imageUrl: `/uploads/${req.file.filename}`, // Save image URL to MongoDB
       createdBy: req.user.id,
+      name: req.body.name, // Store name and description in DB
+      description: req.body.description,
     });
 
     await newQR.save();
-
     res.status(201).json({ success: true, qrId: newQR._id });
   } catch (err) {
     next(err);
   }
 };
+
 
 exports.getQR = async (req, res, next) => {
   try {
