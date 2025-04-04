@@ -1,69 +1,101 @@
-// src/pages/UserPage.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
+import QRCode from 'react-qr-code'; // QR Code library for rendering the QR code
+import '../styles/UserPage.css';
 
-const UserPage = () => {
-  const navigate = useNavigate();
-  const [selectedImage, setSelectedImage] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+function UserPage() {
+  const [image, setImage] = useState(null);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [qrCode, setQrCode] = useState(null); // Store the generated QR code ID
+  const [imageUrl, setImageUrl] = useState(null); // Store the image URL
 
-  const handleImageUpload = async (e) => {
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(file);
+        setImageUrl(reader.result); // Show image preview
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!selectedImage) {
-      setError('Please select an image to upload.');
+    if (!image || !name || !description) {
+      alert('Please upload an image and provide a name and description');
       return;
     }
 
     const formData = new FormData();
-    formData.append('image', selectedImage);
-
-    setLoading(true);
-    setError('');
+    formData.append('image', image);
+    formData.append('name', name);
+    formData.append('description', description);
 
     try {
-      // Replace with your API URL to generate the QR code
       const res = await axios.post('/api/qr/generate', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // JWT token if needed
         },
       });
-
-      // Navigate to the QR View Page after successful QR generation
-      navigate(`/qr/${res.data.qrId}`);
+      setQrCode(res.data.qrId); // Save the QR code ID
     } catch (err) {
-      setLoading(false);
-      setError('Failed to upload image and generate QR code.');
-      console.error(err);
+      console.error('Error generating QR code:', err);
+      alert('Failed to upload image and generate QR code');
     }
   };
 
-  const handleImageChange = (e) => {
-    setSelectedImage(e.target.files[0]);
-  };
-
   return (
-    <div>
-      <h2>Upload Image to Generate QR Code</h2>
-      <form onSubmit={handleImageUpload}>
-        <div>
+    <div className="user-page">
+      <h1>User Dashboard</h1>
+      <div className="qr-section">
+        <h2>Generate New QR Code</h2>
+
+        <form onSubmit={handleSubmit}>
           <input
             type="file"
-            onChange={handleImageChange}
             accept="image/*"
+            onChange={handleImageChange}
             required
           />
-        </div>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Uploading...' : 'Upload and Generate QR'}
-        </button>
-      </form>
+          <input
+            type="text"
+            placeholder="Enter image name"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+          <textarea
+            placeholder="Enter image description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            required
+          ></textarea>
+          <button type="submit">Generate QR Code</button>
+        </form>
+
+        {imageUrl && (
+          <div>
+            <h3>Uploaded Image Preview</h3>
+            <img src={imageUrl} alt="Uploaded" style={{ width: '100%', height: 'auto' }} />
+          </div>
+        )}
+
+        {qrCode && (
+          <div>
+            <h3>Generated QR Code</h3>
+            <QRCode value={`${window.location.origin}/api/qr/${qrCode}`} size={256} />
+            <p>
+              Scan this QR code to view the image and its details on another device.
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
-};
+}
 
 export default UserPage;

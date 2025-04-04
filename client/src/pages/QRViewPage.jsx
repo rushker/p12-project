@@ -1,64 +1,49 @@
-// src/pages/QRViewPage.jsx
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import QRCode from 'react-qr-code';
 import axios from 'axios';
+import QRCode from 'react-qr-code'; // QR Code library to render QR codes
+import { useParams } from 'react-router-dom';
+import '../styles/QRViewPage.css';
 
-const QRViewPage = () => {
-  const { id } = useParams(); // qrId from URL
-  const navigate = useNavigate();
+function QRViewPage() {
+  const { id } = useParams(); // Get the QR code ID from the URL
   const [qrData, setQrData] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchQR = async () => {
+    // Fetch the QR data (image, name, description) based on the QR ID
+    const fetchQRData = async () => {
       try {
-        const res = await axios.get(`/api/qr/${id}/data`);
-        setQrData(res.data);
-        setLoading(false);
+        const response = await axios.get(`/api/qr/${id}/data`);
+        setQrData(response.data);
       } catch (err) {
-        setError('QR Code not found or failed to load.');
-        setLoading(false);
+        console.error('Error fetching QR data:', err);
       }
     };
-
-    fetchQR();
+    fetchQRData();
   }, [id]);
 
-  const handleDelete = async () => {
-    if (!window.confirm('Are you sure you want to delete this QR code?')) return;
-
-    try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`/api/qr/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      navigate('/dashboard'); // or homepage
-    } catch (err) {
-      alert('Failed to delete QR code.');
-    }
-  };
-
-  if (loading) return <p>Loading QR code...</p>;
-  if (error) return <p style={{ color: 'red' }}>{error}</p>;
-
   return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h2>Generated QR Code</h2>
-      <QRCode value={qrData.scanUrl} size={256} />
-      <p>Scan this QR to view the image:</p>
-      <a href={qrData.imageUrl} target="_blank" rel="noreferrer">{qrData.imageUrl}</a>
-      <br />
-      <img src={qrData.imageUrl} alt="Uploaded" style={{ marginTop: '1rem', maxWidth: '300px' }} />
-      <br />
-      <button onClick={handleDelete} style={{ marginTop: '1rem', background: 'red', color: 'white', padding: '0.5rem 1rem', border: 'none' }}>
-        Delete QR Code
-      </button>
+    <div className="qr-view-page">
+      {qrData ? (
+        <>
+          <div className="image-section">
+            <img src={qrData.imageUrl} alt="Uploaded" style={{ maxWidth: '100%', maxHeight: '400px', objectFit: 'contain' }} />
+            <h3>{qrData.name}</h3>
+            <p>{qrData.description}</p>
+          </div>
+
+          <div className="qr-section">
+            <h3>QR Code</h3>
+            <QRCode value={qrData.imageUrl} size={256} />
+            <a href={qrData.imageUrl} download="QRCode.png">
+              <button>Download QR Code</button>
+            </a>
+          </div>
+        </>
+      ) : (
+        <p>Loading...</p>
+      )}
     </div>
   );
-};
+}
 
 export default QRViewPage;

@@ -1,17 +1,16 @@
 const QRCode = require('../models/QRCode');
-const multer = require('multer');
-
-// Generate QR Code
 exports.generateQR = async (req, res, next) => {
   try {
-    if (!req.file) {
-      return res.status(400).json({ success: false, message: 'Image file is required' });
+    if (!req.file || !req.body.name || !req.body.description) {
+      return res.status(400).json({ success: false, message: 'Image, name, and description are required' });
     }
 
     // Save the QR code entry to the database
     const newQR = new QRCode({
       imageUrl: `/uploads/${req.file.filename}`,
-      createdBy: req.user.id,  // User info attached by auth middleware
+      name: req.body.name,
+      description: req.body.description,
+      createdBy: req.user.id,
     });
 
     await newQR.save();
@@ -22,7 +21,6 @@ exports.generateQR = async (req, res, next) => {
   }
 };
 
-// Get QR by ID (public route for QR code scanning)
 exports.getQR = async (req, res, next) => {
   try {
     const qrCode = await QRCode.findById(req.params.id);
@@ -30,28 +28,25 @@ exports.getQR = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'QR Code not found' });
     }
 
-    res.status(200).json({ success: true, imageUrl: qrCode.imageUrl });
+    res.status(200).json({
+      success: true,
+      imageUrl: qrCode.imageUrl,
+      name: qrCode.name,
+      description: qrCode.description,
+    });
   } catch (err) {
     next(err);
   }
 };
-
-// Delete QR (requires authentication)
 exports.deleteQR = async (req, res, next) => {
   try {
-    const qrCode = await QRCode.findById(req.params.id);
-
+    const qrCode = await QRCode.findByIdAndDelete(req.params.id);
+    
     if (!qrCode) {
       return res.status(404).json({ success: false, message: 'QR Code not found' });
     }
 
-    // Ensure the user is the creator
-    if (qrCode.createdBy.toString() !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'Unauthorized' });
-    }
-
-    await qrCode.remove();
-    res.status(200).json({ success: true, message: 'QR Code deleted' });
+    res.status(200).json({ success: true, message: 'QR Code deleted successfully' });
   } catch (err) {
     next(err);
   }
