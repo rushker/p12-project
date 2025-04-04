@@ -1,19 +1,56 @@
 const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const QRCode = require('qrcode');
+const { v4: uuidv4 } = require('uuid');
+const Image = require('../models/Image'); // Ensure your Image model is imported
+const authMiddleware = require('../middleware/auth');
+
 const router = express.Router();
-const qrController = require('../controllers/qrController');
-const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');  // Ensure upload middleware is used for file handling
 
-// Route to generate QR code from an uploaded image (private)
-router.post('/generate', auth, upload.single('image'), qrController.generateQR);
+// Multer Storage Setup
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
 
-// Route to get the QR code data (public)
-router.get('/:id', qrController.getQR);
+// Generate QR Code Route
+router.post('/generate', authMiddleware, upload.single('image'), async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No image uploaded' });
+        }
 
-// Route to get the QR code data (for frontend usage)
-router.get('/:id/data', qrController.getQR);
+        // Generate unique ID
+        const qrId = uuidv4();
+        const imageUrl = `data:image/png;base64,${req.file.buffer.toString('base64')}`;
 
-// Route to delete QR code (private)
-router.delete('/:id', auth, qrController.deleteQR);
+        // Save to MongoDB
+        const newImage = new Image({
+            qrId,
+            imageUrl,
+            user: req.user.id,
+        });
+
+        await newImage.save();
+
+        // Generate QR Code
+        const qrCode = await QRCode.toDataURL(qrId);
+
+        return res.status(201).json({ qrId, qrCode });
+    } catch (error) {
+        console.error('QR Generation Error:', error);
+        res.status(500).json({ message: 'Error generating QR code' });
+    }
+});
+
+// Get All QR Codes for User
+router.get('/list', authMiddleware, async (req, res) => {
+    try {
+        const qrCodes = await Image.find({ user: req.user.id });
+        res.json(qrCodes);
+    } catch (error) {
+        console.error('Fetch QR Codes Error:', error);
+        res.status(500).json({ message: 'Error fetching QR codes' });
+    }
+});
 
 module.exports = router;
