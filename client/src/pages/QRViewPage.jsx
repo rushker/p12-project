@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import QRCode from 'react-qr-code'; // QR Code library to render QR codes
 import { useParams } from 'react-router-dom';
 import '../styles/QRViewPage.css';
 
