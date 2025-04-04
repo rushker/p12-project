@@ -5,20 +5,20 @@ import QRCode from 'react-qr-code';
 import axios from 'axios';
 
 const QRViewPage = () => {
-  const { id } = useParams();
+  const { id } = useParams(); // qrId from URL
   const navigate = useNavigate();
   const [qrData, setQrData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const backendBaseUrl = import.meta.env.VITE_BACKEND_URL;
+  const [error, setError] = useState('');
 
   useEffect(() => {
     const fetchQR = async () => {
       try {
-        const response = await axios.get(`${backendBaseUrl}/api/qr/${id}`);
-        setQrData(response.data.imageUrl);
+        const res = await axios.get(`/api/qr/${id}/data`);
+        setQrData(res.data);
+        setLoading(false);
       } catch (err) {
-        console.error(err);
-      } finally {
+        setError('QR Code not found or failed to load.');
         setLoading(false);
       }
     };
@@ -27,51 +27,36 @@ const QRViewPage = () => {
   }, [id]);
 
   const handleDelete = async () => {
+    if (!window.confirm('Are you sure you want to delete this QR code?')) return;
+
     try {
-      await axios.delete(`${backendBaseUrl}/api/qr/${id}`, {
+      const token = localStorage.getItem('token');
+      await axios.delete(`/api/qr/${id}`, {
         headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
+          Authorization: `Bearer ${token}`,
         },
       });
-      navigate('/dashboard'); // or your homepage
+      navigate('/dashboard'); // or homepage
     } catch (err) {
-      console.error('Delete failed', err);
+      alert('Failed to delete QR code.');
     }
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(`${backendBaseUrl}${qrData}`);
-    alert('Image URL copied!');
-  };
-
-  const handleShare = async () => {
-    if (navigator.share) {
-      await navigator.share({
-        title: 'QR Code',
-        url: `${backendBaseUrl}${qrData}`,
-      });
-    } else {
-      alert('Sharing not supported');
-    }
-  };
-
-  if (loading) return <p>Loading...</p>;
-  if (!qrData) return <p>QR Code not found.</p>;
+  if (loading) return <p>Loading QR code...</p>;
+  if (error) return <p style={{ color: 'red' }}>{error}</p>;
 
   return (
-    <div style={{ textAlign: 'center', padding: '2rem' }}>
-      <h2>Your QR Code</h2>
-      <QRCode value={`${backendBaseUrl}${qrData}`} size={200} />
-      <p style={{ marginTop: '1rem' }}>
-        <a href={`${backendBaseUrl}${qrData}`} target="_blank" rel="noreferrer">
-          {`${backendBaseUrl}${qrData}`}
-        </a>
-      </p>
-      <div style={{ marginTop: '1rem' }}>
-        <button onClick={handleCopy}>Copy URL</button>{' '}
-        <button onClick={handleShare}>Share</button>{' '}
-        <button onClick={handleDelete} style={{ color: 'red' }}>Delete QR</button>
-      </div>
+    <div style={{ padding: '2rem', textAlign: 'center' }}>
+      <h2>Generated QR Code</h2>
+      <QRCode value={qrData.scanUrl} size={256} />
+      <p>Scan this QR to view the image:</p>
+      <a href={qrData.imageUrl} target="_blank" rel="noreferrer">{qrData.imageUrl}</a>
+      <br />
+      <img src={qrData.imageUrl} alt="Uploaded" style={{ marginTop: '1rem', maxWidth: '300px' }} />
+      <br />
+      <button onClick={handleDelete} style={{ marginTop: '1rem', background: 'red', color: 'white', padding: '0.5rem 1rem', border: 'none' }}>
+        Delete QR Code
+      </button>
     </div>
   );
 };

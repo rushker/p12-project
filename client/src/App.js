@@ -5,8 +5,7 @@ import UserPage from './pages/UserPage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import QRGenerator from './components/user/QRGenerator';
-import QRViewPage from './components/user/QRViewPage';
-
+import QRViewPage from './pages/QRViewPage';
 function App() {
   return (
     <BrowserRouter>
