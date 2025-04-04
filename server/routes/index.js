@@ -1,21 +1,14 @@
 const express = require('express');
 const router = express.Router();
 
-// Verify route files exist
+// Import route files
 const authRoutes = require('./authRoutes');
 const qrRoutes = require('./qrRoutes');
 const imageRoutes = require('./imageRoutes');
 
-// Validate all route modules
-[authRoutes, qrRoutes, imageRoutes].forEach(routeModule => {
-  if (typeof routeModule !== 'function') {
-    throw new Error(`Invalid route module: ${routeModule}`);
-  }
-});
-
 // Mount routes
-router.use('/auth', authRoutes);
-router.use('/qr', qrRoutes);
-router.use('/images', imageRoutes);
+router.use('/auth', authRoutes);   // For authentication routes (login, register)
+router.use('/qr', qrRoutes);       // For QR code generation and viewing
+router.use('/images', imageRoutes); // For image upload and viewing
 
 module.exports = router;

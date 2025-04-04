@@ -2,23 +2,18 @@ const express = require('express');
 const router = express.Router();
 const qrController = require('../controllers/qrController');
 const auth = require('../middleware/auth');
-const upload = require('../middleware/upload');
+const upload = require('../middleware/upload');  // Ensure upload middleware is used for file handling
 
-// @route    POST /api/qr/generate
-// @desc     Upload image & generate QR code
-// @access   Private
-// qrRoutes.js
-router.post('/generate', auth, qrController.generateQR);  // Auth middleware if needed
+// Route to generate QR code from an uploaded image (private)
+router.post('/generate', auth, upload.single('image'), qrController.generateQR);
 
-
-// @route    GET /api/qr/:id
-// @desc     Get image by QR code ID (redirect to image)
-// @access   Public (for QR scanners)
+// Route to get the QR code data (public)
 router.get('/:id', qrController.getQR);
 
-// frontend QR view
-router.get('/:id/data', qrController.getQRData); 
-// delete QR (auth required)
-router.delete('/:id', auth, qrController.deleteQR); 
+// Route to get the QR code data (for frontend usage)
+router.get('/:id/data', qrController.getQR);
+
+// Route to delete QR code (private)
+router.delete('/:id', auth, qrController.deleteQR);
 
 module.exports = router;
