@@ -1,9 +1,8 @@
 const express = require('express');
 const multer = require('multer');
-const path = require('path');
 const QRCode = require('qrcode');
 const { v4: uuidv4 } = require('uuid');
-const Image = require('../models/Image'); // Ensure your Image model is imported
+const Image = require('../models/Image'); // Ensure Image model is imported
 const authMiddleware = require('../middleware/auth');
 
 const router = express.Router();
@@ -19,11 +18,14 @@ router.post('/generate', authMiddleware, upload.single('image'), async (req, res
             return res.status(400).json({ message: 'No image uploaded' });
         }
 
-        // Generate unique ID
+        // Generate unique QR ID
         const qrId = uuidv4();
         const imageUrl = `data:image/png;base64,${req.file.buffer.toString('base64')}`;
 
-        // Save to MongoDB
+        // Generate QR Code (linking to the image directly)
+        const qrCode = await QRCode.toDataURL(imageUrl);
+
+        // Save image and QR ID to database
         const newImage = new Image({
             qrId,
             imageUrl,
@@ -32,10 +34,8 @@ router.post('/generate', authMiddleware, upload.single('image'), async (req, res
 
         await newImage.save();
 
-        // Generate QR Code
-        const qrCode = await QRCode.toDataURL(qrId);
-
-        return res.status(201).json({ qrId, qrCode });
+        // Return response with QR Code
+        return res.status(201).json({ qrId, qrCode, imageUrl });
     } catch (error) {
         console.error('QR Generation Error:', error);
         res.status(500).json({ message: 'Error generating QR code' });
