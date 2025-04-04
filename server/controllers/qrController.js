@@ -1,16 +1,4 @@
 const QRCode = require('../models/QRCode');
-const multer = require('multer');
-
-// Configure Multer for image uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, 'uploads/'); // Ensure 'uploads/' exists
-  },
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + '-' + file.originalname);
-  }
-});
-const upload = multer({ storage });
 
 // Generate QR Code (No password required)
 exports.generateQR = async (req, res, next) => {
@@ -19,15 +7,25 @@ exports.generateQR = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'Image file is required' });
     }
 
+    const fullImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+
     // Save the QR code entry to the database
     const newQR = new QRCode({
-      imageUrl: `/uploads/${req.file.filename}`,
+      imageUrl: fullImageUrl,
       createdBy: req.user.id
     });
 
     await newQR.save();
 
-    res.status(201).json({ success: true, qrId: newQR._id });
+    // This is the URL the frontend will encode as a QR
+    const scanUrl = `${req.protocol}://${req.get('host')}/api/qr/${newQR._id}`;
+
+    res.status(201).json({ 
+      success: true, 
+      qrId: newQR._id, 
+      imageUrl: fullImageUrl,
+      scanUrl // Used on frontend QR code
+    });
   } catch (err) {
     next(err);
   }
@@ -41,11 +39,8 @@ exports.getQR = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'QR Code not found' });
     }
 
-    res.status(200).json({ success: true, imageUrl: qrCode.imageUrl });
+    res.redirect(qrCode.imageUrl); // QR scan redirects directly to image
   } catch (err) {
     next(err);
   }
 };
-
-// Export Multer middleware for use in routes
-exports.upload = upload.single('image');

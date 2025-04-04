@@ -6,7 +6,6 @@ const helmet = require('helmet');
 const cors = require('cors');
 const fs = require('fs');
 const connectDB = require('./config/db');
-
 // Initialize Express app
 const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
@@ -70,15 +69,16 @@ app.use((err, req, res, next) => {
     }
   });
 });
-
-// 9. Server Initialization
+// 9. Uploads
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// 10. Server Initialization
 const PORT = process.env.PORT || 10000;
 const server = app.listen(PORT, () => {
   console.log(`Server running in ${isProduction ? 'production' : 'development'} mode`);
   console.log(`Listening on port ${PORT}`);
 });
 
-// 10. Graceful Shutdown (Updated for Mongoose v8+)
+// 11. Graceful Shutdown (Updated for Mongoose v8+)
 const shutdown = async (signal) => {
   console.log(`\n${signal} received. Shutting down gracefully...`);
   
