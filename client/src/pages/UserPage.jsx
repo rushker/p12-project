@@ -10,7 +10,7 @@ function UserPage() {
   const handleGenerateQR = (qrCode) => {
     setQrValue(qrCode);
     toast.success(
-      <div>
+      <div className="success-toast">
         <p>✅ QR Code Generated!</p>
         <QRCode value={qrCode} size={100} />
       </div>,

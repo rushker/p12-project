@@ -50,14 +50,20 @@ const QRGenerator = ({ onGenerate }) => {
       );
 
       if (response.data.qrCode) {
-        toast.success('✅ QR Code generated successfully!');
+        toast.success('✅ QR Code generated successfully!', { autoClose: 2000 });
         onGenerate(response.data.qrCode);
       } else {
-        toast.error('⚠️ QR Code generation failed');
+        toast.error('⚠️ QR Code generation failed', { autoClose: 3000 });
       }
     } catch (err) {
       console.error('❌ QR generation error:', err.response?.data || err);
-      toast.error(err.response?.data?.message || '❌ Error generating QR code');
+      toast.error(
+        <div>
+          ❌ Error generating QR code
+          <p>{err.response?.data?.message || 'Unknown error'}</p>
+        </div>,
+        { autoClose: false }
+      );
     } finally {
       setLoading(false);
     }
