@@ -5,6 +5,7 @@ import UserPage from './pages/UserPage';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import QRGenerator from './components/user/QRGenerator';
+import QRViewPage from './components/user/QRViewPage';
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/admin" element={<AdminPage />} />
+        <Route path="/qr/:id" element={<QRViewPage />} />
         <Route path="/user" element={<UserPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
