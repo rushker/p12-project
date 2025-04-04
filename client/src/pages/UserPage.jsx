@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import QRGenerator from '../components/user/QRGenerator';
-import QRViewPage from '../components/user/QRViewPage';
+import QRViewPage from './QRViewPage';
 import '../styles/UserPage.css';
 
 function UserPage() {
