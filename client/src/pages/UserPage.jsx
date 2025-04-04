@@ -1,51 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import QRGenerator from '../components/user/QRGenerator';
+import React, { useState } from 'react';
 import QRCode from 'react-qr-code';
+import QRGenerator from '../components/user/QRGenerator';
 import { toast } from 'react-toastify';
 import '../styles/UserPage.css';
 
 function UserPage() {
-  const [qrList, setQrList] = useState([]);
+  const [qrValue, setQrValue] = useState('');
 
-  useEffect(() => {
-    const fetchQRs = async () => {
-      try {
-        const response = await axios.get(`${process.env.REACT_APP_BACKEND_URL}/api/qr/list`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` },
-        });
-        setQrList(response.data);
-      } catch (error) {
-        console.error('Error fetching QR codes:', error);
-        toast.error('Failed to fetch QR codes');
-      }
-    };
-
-    fetchQRs();
-  }, []);
-
-  const handleNewQR = (newQR) => {
-    setQrList((prevList) => [...prevList, newQR]);
+  const handleGenerateQR = (qrCode) => {
+    setQrValue(qrCode);
+    toast.success(
+      <div>
+        <p>✅ QR Code Generated!</p>
+        <QRCode value={qrCode} size={100} />
+      </div>,
+      { position: 'top-right', autoClose: 5000 }
+    );
   };
 
   return (
     <div className="user-page">
-      <h1>QR Dashboard</h1>
-      <QRGenerator onGenerate={handleNewQR} />
+      <h1>User Dashboard</h1>
+      <QRGenerator onGenerate={handleGenerateQR} />
 
-      <div className="qr-list">
-        <h2>Generated QR Codes</h2>
-        {qrList.length === 0 ? (
-          <p>No QR codes yet.</p>
-        ) : (
-          qrList.map((qr) => (
-            <div key={qr.qrId} className="qr-item">
-              <QRCode value={qr.qrId} size={128} />
-              <p>{qr.qrId}</p>
-            </div>
-          ))
-        )}
-      </div>
+      {qrValue && (
+        <div className="qr-display">
+          <h2>Latest QR Code</h2>
+          <QRCode value={qrValue} size={256} />
+        </div>
+      )}
     </div>
   );
 }

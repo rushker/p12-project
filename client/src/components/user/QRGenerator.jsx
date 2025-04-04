@@ -14,12 +14,12 @@ const QRGenerator = ({ onGenerate }) => {
     if (!file) return;
 
     if (!file.type.match('image.*')) {
-      toast.error('Please select a valid image file');
+      toast.error('🚫 Please select an image file (JPEG, PNG, etc.)');
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast.error('Image must be under 5MB');
+      toast.error('🚫 Image size should be less than 5MB');
       return;
     }
 
@@ -28,7 +28,7 @@ const QRGenerator = ({ onGenerate }) => {
 
   const handleGenerateQR = async () => {
     if (!image) {
-      toast.error('Please upload an image');
+      toast.error('⚠️ Please select an image');
       return;
     }
 
@@ -49,26 +49,35 @@ const QRGenerator = ({ onGenerate }) => {
         }
       );
 
-      onGenerate(response.data.qrValue); // Pass QR code URL to parent component
-      toast.success('QR Code generated successfully!');
-    } catch (error) {
-      console.error('QR Generation Error:', error);
-      toast.error('Failed to generate QR code');
+      if (response.data.qrCode) {
+        toast.success('✅ QR Code generated successfully!');
+        onGenerate(response.data.qrCode);
+      } else {
+        toast.error('⚠️ QR Code generation failed');
+      }
+    } catch (err) {
+      console.error('❌ QR generation error:', err.response?.data || err);
+      toast.error(err.response?.data?.message || '❌ Error generating QR code');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="qr-generator">
+    <div className="qr-generator-container">
       <button className="back-button" onClick={() => navigate(-1)}>
-        ← Back
+        ← Back to Dashboard
       </button>
 
-      <input type="file" accept="image/*" onChange={handleImageChange} />
-      <button onClick={handleGenerateQR} disabled={loading}>
-        {loading ? 'Generating...' : 'Generate QR Code'}
-      </button>
+      <div className="qr-generator-card">
+        <h2>Generate QR Code</h2>
+
+        <input type="file" accept="image/*" onChange={handleImageChange} />
+        
+        <button onClick={handleGenerateQR} disabled={loading} className="generate-button">
+          {loading ? 'Generating...' : 'Generate QR Code'}
+        </button>
+      </div>
     </div>
   );
 };

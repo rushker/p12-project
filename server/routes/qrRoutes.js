@@ -15,6 +15,7 @@ const upload = multer({ storage });
 router.post('/generate', authMiddleware, upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
+            console.error('❌ No image uploaded');
             return res.status(400).json({ message: 'No image uploaded' });
         }
 
@@ -22,8 +23,13 @@ router.post('/generate', authMiddleware, upload.single('image'), async (req, res
         const qrId = uuidv4();
         const imageUrl = `data:image/png;base64,${req.file.buffer.toString('base64')}`;
 
-        // Generate QR Code (linking to the image directly)
+        // Generate QR Code (using imageUrl as the data)
         const qrCode = await QRCode.toDataURL(imageUrl);
+
+        if (!qrCode) {
+            console.error('❌ QR Code generation failed');
+            return res.status(500).json({ message: 'Failed to generate QR Code' });
+        }
 
         // Save image and QR ID to database
         const newImage = new Image({
@@ -34,11 +40,12 @@ router.post('/generate', authMiddleware, upload.single('image'), async (req, res
 
         await newImage.save();
 
-        // Return response with QR Code
+        console.log('✅ QR Code Generated:', { qrId, imageUrl });
+
         return res.status(201).json({ qrId, qrCode, imageUrl });
     } catch (error) {
-        console.error('QR Generation Error:', error);
-        res.status(500).json({ message: 'Error generating QR code' });
+        console.error('❌ QR Generation Error:', error);
+        res.status(500).json({ message: 'Error generating QR code', error: error.message });
     }
 });
 
@@ -46,10 +53,15 @@ router.post('/generate', authMiddleware, upload.single('image'), async (req, res
 router.get('/list', authMiddleware, async (req, res) => {
     try {
         const qrCodes = await Image.find({ user: req.user.id });
+
+        if (!qrCodes.length) {
+            console.warn('⚠️ No QR codes found for this user');
+        }
+
         res.json(qrCodes);
     } catch (error) {
-        console.error('Fetch QR Codes Error:', error);
-        res.status(500).json({ message: 'Error fetching QR codes' });
+        console.error('❌ Fetch QR Codes Error:', error);
+        res.status(500).json({ message: 'Error fetching QR codes', error: error.message });
     }
 });
 
